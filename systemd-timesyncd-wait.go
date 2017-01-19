@@ -1,9 +1,8 @@
 // Copyright 2017 Luke Shumaker
 //
 // For just ListenFds:
-//
-// Copyright 2015 CoreOS, Inc.
-// Copyright 2015-2016 Luke Shumaker
+//   Copyright 2015 CoreOS, Inc.
+//   Copyright 2015-2016 Luke Shumaker
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
