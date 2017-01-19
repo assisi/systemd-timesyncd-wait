@@ -56,6 +56,7 @@ func main() {
 	os.Chown(fake_sockname, uid, gid)
 
 	os.Setenv("NOTIFY_SOCKET", fake_sockname)
+	os.Unsetenv("WATCHDOG_PID")
 	proc, err := os.StartProcess(os.Args[1], os.Args[1:], &os.ProcAttr{Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
