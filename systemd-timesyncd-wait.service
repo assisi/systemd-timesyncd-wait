@@ -1,0 +1,11 @@
+[Unit]
+Description=Network Time Synchronized
+DefaultDependencies=no
+After=systemd-timesyncd-wait.socket
+Before=time-sync.target
+Wants=time-sync.target systemd-timesyncd-wait.socket
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/systemd/systemd-timesyncd-wait
+TimeoutStartSec=infinity
