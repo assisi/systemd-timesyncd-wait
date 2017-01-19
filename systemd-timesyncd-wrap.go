@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"os"
+	"os/user"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -35,18 +38,27 @@ func main() {
 	fake_sockname := "/run/timesyncd/notify.sock"
 	real_sockname := os.Getenv("NOTIFY_SOCKET")
 
-	fake_sock, err := net.ListenUnixgram("unixgram", &net.UnixAddr{Net: "unixgram", Name: fake_sockname})
+	user, err := user.Lookup("systemd-timesync")
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Stderr.Write([]byte{'\n'})
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(127)
 	}
+	uid, _ := strconv.Atoi(user.Uid)
+	gid, _ := strconv.Atoi(user.Gid)
+
+	umask := syscall.Umask(0577)
+	fake_sock, err := net.ListenUnixgram("unixgram", &net.UnixAddr{Net: "unixgram", Name: fake_sockname})
+	syscall.Umask(umask)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(127)
+	}
+	os.Chown(fake_sockname, uid, gid)
 
 	os.Setenv("NOTIFY_SOCKET", fake_sockname)
-	proc, err := os.StartProcess(os.Args[1], os.Args[1:], &os.ProcAttr{})
+	proc, err := os.StartProcess(os.Args[1], os.Args[1:], &os.ProcAttr{Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}})
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Stderr.Write([]byte{'\n'})
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(127)
 	}
 
@@ -59,21 +71,29 @@ func main() {
 		for {
 			n, oobn, flags, _, err := fake_sock.ReadMsgUnix(dat[:], oob[:])
 			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
 				break
 			}
 			if flags&syscall.MSG_TRUNC != 0 {
+				fmt.Fprintln(os.Stderr, "Received notify message exceeded maximum size. Ignoring.")
 				continue
 			}
 			if !synced {
 				for _, line := range strings.Split(string(dat[:n]), "\n") {
 					if strings.HasPrefix(line, "STATUS=Synchronized") {
-						_ = sendmsg([]byte(line), nil, sync_sockname)
+						err = sendmsg([]byte(line), nil, sync_sockname)
+						if err != nil {
+							fmt.Fprintln(os.Stderr, err)
+						}
 						synced = true
 						break
 					}
 				}
 			}
-			_ = sendmsg(dat[:n], oob[:oobn], real_sockname)
+			err = sendmsg(dat[:n], oob[:oobn], real_sockname)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
 		}
 		wg.Done()
 	}()
@@ -83,8 +103,7 @@ func main() {
 	wg.Wait()
 
 	if err != nil {
-		os.Stderr.WriteString(err.Error())
-		os.Stderr.Write([]byte{'\n'})
+		fmt.Println(os.Stderr, err)
 		os.Exit(127)
 	}
 	status := state.Sys().(syscall.WaitStatus)

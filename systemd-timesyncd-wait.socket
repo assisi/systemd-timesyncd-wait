@@ -1,7 +1,9 @@
 [Unit]
 Description=Network Time Synchronized Socket
 DefaultDependencies=no
-After=systemd-remount-fs.service systemd-tmpfiles-setup.service
+After=systemd-remount-fs.service systemd-tmpfiles-setup.service systemd-sysusers.service
 
 [Socket]
 ListenDatagram=/run/timesyncd/time-sync.sock
+SocketUser=systemd-timesync
+SocketMode=0200
