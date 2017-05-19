@@ -16,3 +16,15 @@ introduce some other problems.
 So, I'm introducing systemd-timesyncd-wait.  It is a service that
 listens for messages from systemd-timesyncd, and block until it sees a
 message indicating that systemd-timesyncd has synchronized the time.
+
+### Requirements
+
+	go > 1.4
+	make
+
+
+### Installation
+
+Clone the repo and execute:
+
+	make && make install
