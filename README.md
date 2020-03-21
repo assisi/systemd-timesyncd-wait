@@ -1,3 +1,11 @@
+### |--- Note ---->
+
+**The functionality provided on this repo was finally implemented on Systemd  with "systemd-timesyncd-wait"**
+
+https://github.com/systemd/systemd/issues/5097
+
+### <--- Note ----|
+
 Proper time-sync.target support for systemd-timesyncd
 
 This package essentially just works around
