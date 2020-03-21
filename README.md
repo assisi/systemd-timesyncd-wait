@@ -1,6 +1,6 @@
 ### |--- Note ---->
 
-**The functionality provided on this repo was finally implemented on Systemd  with "systemd-timesyncd-wait"**
+**The functionality provided on this repo was finally implemented on Systemd  with "systemd-time-wait-sync"**
 
 https://github.com/systemd/systemd/issues/5097
 
